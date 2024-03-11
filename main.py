@@ -8,9 +8,10 @@ pygame.init()
 clock = pygame.time.Clock()
 
 # Skärm hur bred och hög den ska vara
-win_height = 720
-win_width = 551
+win_height = 650
+win_width = 541
 window = pygame.display.set_mode((win_width, win_height))
+pygame.display.set_caption("Floppy")
 
 # Bilder för spelet (fågeln och pipes och backgrunden)
 bird_frames = [pygame.image.load("assets/images/serbian-downflap.png"),
@@ -24,7 +25,7 @@ game_over_img = pygame.image.load("assets/images/game_over.png")
 start_img = pygame.image.load("assets/images/start.png")
 
 # Spelet, start position och hastighet för själva fågeln och backgrunden, font för score och om spelet är slut, variabel
-scroll_speed = 1
+scroll_speed = 1.2
 initial_bird_pos = (100, 250)
 current_score = 0
 font = pygame.font.SysFont('Arial', 26)
