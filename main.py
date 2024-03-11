@@ -29,15 +29,18 @@ scroll_speed = 1.2
 initial_bird_pos = (100, 250)
 current_score = 0
 font = pygame.font.SysFont('Arial', 26)
+top_scores = [0, 0, 0]
 is_game_over = True
+high_scores_file = 'high_scores.txt'
 
-
+#klass för fågeln
 class FlappyBird(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = bird_frames[0]
         self.rect = self.image.get_rect()
         self.rect.center = initial_bird_pos
+        #variab för anmatiation rörrelse
         self.frame_index = 0
         self.velocity = 0
         self.flap = False
@@ -68,10 +71,11 @@ class FlappyBird(pygame.sprite.Sprite):
             self.flap = True
             self.velocity = -7
 
-
+#klass för pipes
 class PipeObstacle(pygame.sprite.Sprite):
     def __init__(self, x, y, image, pipe_type):
         pygame.sprite.Sprite.__init__(self)
+        #bild för rörena
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
@@ -95,7 +99,7 @@ class PipeObstacle(pygame.sprite.Sprite):
                 self.crossed = True
                 current_score += 1
 
-
+#klass så att marken rör sig
 class GroundTerrain(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -117,6 +121,30 @@ def quit_game():
             pygame.quit()
             exit()
 
+#funktion för att  updatera de högsta påengarna man får
+def update_top_scores(score):
+    global top_scores
+    min_score = min(top_scores)
+    if score > min_score:
+        top_scores.remove(min_score)
+        top_scores.append(score)
+        top_scores.sort(reverse=True)
+        save_high_scores()
+
+
+#funktion för att spara högsta påeng till en fil
+def save_high_scores():
+    with open(high_scores_file, 'w') as file:
+        for score in top_scores:
+            file.write(str(score) + '\n')
+
+#funktion för att ladda högsta påengarna från en fil
+def load_high_scores():
+    try:
+        with open(high_scores_file, 'r') as file:
+            return [int(line.strip()) for line in file.readlines()]
+    except FileNotFoundError:
+        return [0, 0, 0]
 
 # Huvudspel
 def play_game():
@@ -149,6 +177,7 @@ def play_game():
         # ritar backgrunden
         window.blit(background_img, (0, 0))
 
+    
         # skapar marken
         if len(ground) <= 2:
             ground.add(GroundTerrain(win_width, y_pos_ground))
@@ -177,6 +206,7 @@ def play_game():
                 window.blit(game_over_img, (win_width // 2 - game_over_img.get_width() // 2,
                                             win_height // 2 - game_over_img.get_height() // 2))
                 if user_input[pygame.K_r]:
+                    update_top_scores(current_score)
                     current_score = 0
                     break
 
@@ -213,6 +243,10 @@ def main_menu():
         user_input = pygame.key.get_pressed()
         if user_input[pygame.K_SPACE]:
             play_game()
+        # ritar högsta påengarna på mitten av skärmen "top scores" och lägger in högsta påengarna där från filet
+        top_scores_text = font.render('Top Scores: ' + ', '.join(map(str, top_scores)), True,
+                                      pygame.Color(255, 255, 255))
+        window.blit(top_scores_text, (180, 150))
 
         pygame.display.update()
 
