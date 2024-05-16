@@ -10,6 +10,26 @@ clock = pygame.time.Clock()
 # Skärm hur bred och hög den ska vara
 win_height = 650
 win_width = 541
+scroll_speed = 2
+initial_bird_pos = (100, 250)
+gravity = 0.5
+max_velocity = 7
+rotation_factor = -7
+ground_y_pos = 520
+pipe_gap_min = 90
+pipe_gap_max = 130
+pipe_top_y_min = -600
+pipe_top_y_max = -480
+pipe_spawn_x = 550
+pipe_timer_min = 180
+pipe_timer_max = 250
+frame_rate = 60
+font_size = 26
+font_name = 'Arial'
+white = (255, 255, 255)
+black = (0, 0, 0)
+high_scores_file = 'high_scores.txt'
+
 window = pygame.display.set_mode((win_width, win_height))
 pygame.display.set_caption("Floppy")
 
@@ -25,13 +45,10 @@ game_over_img = pygame.image.load("assets/images/game_over.png")
 start_img = pygame.image.load("assets/images/start.png")
 
 # Spelet, start position och hastighet för själva fågeln och backgrunden, font för score och om spelet är slut, variabel
-scroll_speed = 2
-initial_bird_pos = (100, 250)
 current_score = 0
-font = pygame.font.SysFont('Arial', 26)
+font = pygame.font.SysFont(font_name, font_size)
 top_scores = [0, 0, 0]
 is_game_over = True
-high_scores_file = 'high_scores.txt'
 
 
 # klass för fågeln
@@ -56,21 +73,21 @@ class FlappyBird(pygame.sprite.Sprite):
         self.image = bird_frames[self.frame_index // 10]
 
         # Gravititet och upp och ner
-        self.velocity += 0.5
-        if self.velocity > 7:
-            self.velocity = 7
-        if self.rect.y < 500:
+        self.velocity += gravity
+        if self.velocity > max_velocity:
+            self.velocity = max_velocity
+        if self.rect.y < ground_y_pos:
             self.rect.y += int(self.velocity)
         if self.velocity == 0:
             self.flap = False
 
         # rotera skiten
-        self.image = pygame.transform.rotate(self.image, self.velocity * -7)
+        self.image = pygame.transform.rotate(self.image, self.velocity * rotation_factor)
 
         # input att skiten ska hoppa-flygga
         if user_input[pygame.K_SPACE] and not self.flap and self.rect.y > 0 and self.is_alive:
             self.flap = True
-            self.velocity = -7
+            self.velocity = -max_velocity
 
 
 # klass för pipes
@@ -165,9 +182,8 @@ def play_game():
     pipes = pygame.sprite.Group()
 
     # intialiserar marken
-    x_pos_ground, y_pos_ground = 0, 520
     ground = pygame.sprite.Group()
-    ground.add(GroundTerrain(x_pos_ground, y_pos_ground))
+    ground.add(GroundTerrain(0, ground_y_pos))
 
     run = True
     while run:
@@ -175,7 +191,7 @@ def play_game():
         quit_game()
 
         # restartar rutan
-        window.fill((0, 0, 0))
+        window.fill(black)
 
         # input  spelarnen
         user_input = pygame.key.get_pressed()
@@ -185,7 +201,7 @@ def play_game():
 
         # skapar marken
         if len(ground) <= 2:
-            ground.add(GroundTerrain(win_width, y_pos_ground))
+            ground.add(GroundTerrain(win_width, ground_y_pos))
 
         # ritar rören, marken och fågeln
         pipes.draw(window)
@@ -193,7 +209,7 @@ def play_game():
         flappy_bird.draw(window)
 
         # vissar score
-        score_text = font.render('Score: ' + str(current_score), True, pygame.Color(255, 255, 255))
+        score_text = font.render('Score: ' + str(current_score), True, pygame.Color(white))
         window.blit(score_text, (20, 20))
 
         # updaterar rören, marken och fågeln
@@ -217,15 +233,14 @@ def play_game():
 
         # skapar rören
         if pipe_timer <= 0 and flappy_bird.sprite.is_alive:
-            x_top, x_bottom = 550, 550
-            y_top = random.randint(-600, -480)
-            y_bottom = y_top + random.randint(90, 130) + bottom_pipe_img.get_height()
-            pipes.add(PipeObstacle(x_top, y_top, top_pipe_img, 'top'))
-            pipes.add(PipeObstacle(x_bottom, y_bottom, bottom_pipe_img, 'bottom'))
-            pipe_timer = random.randint(180, 250)
+            y_top = random.randint(pipe_top_y_min, pipe_top_y_max)
+            y_bottom = y_top + random.randint(pipe_gap_min, pipe_gap_max) + bottom_pipe_img.get_height()
+            pipes.add(PipeObstacle(pipe_spawn_x, y_top, top_pipe_img, 'top'))
+            pipes.add(PipeObstacle(pipe_spawn_x, y_bottom, bottom_pipe_img, 'bottom'))
+            pipe_timer = random.randint(pipe_timer_min, pipe_timer_max)
         pipe_timer -= 1.7
 
-        clock.tick(60)
+        clock.tick(frame_rate)
         pygame.display.update()
 
 
@@ -237,9 +252,9 @@ def main_menu():
         quit_game()
 
         # ritar själva menyn
-        window.fill((0, 0, 0))
+        window.fill(black)
         window.blit(background_img, (0, 0))
-        window.blit(ground_img, GroundTerrain(0, 520))
+        window.blit(ground_img, (0, ground_y_pos))
         window.blit(bird_frames[0], (100, 250))
         window.blit(start_img, (win_width // 2 - start_img.get_width() // 2,
                                 win_height // 2 - start_img.get_height() // 2))
@@ -250,7 +265,7 @@ def main_menu():
             play_game()
         # ritar högsta påengarna på mitten av skärmen "top scores" och lägger in högsta påengarna där från filet
         top_scores_text = font.render('Top Scores: ' + ', '.join(map(str, top_scores)), True,
-                                      pygame.Color(255, 255, 255))
+                                      pygame.Color(white))
         window.blit(top_scores_text, (180, 150))
 
         pygame.display.update()
