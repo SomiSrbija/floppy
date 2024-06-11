@@ -259,7 +259,7 @@ def main_menu():
         window.blit(start_img, (win_width // 2 - start_img.get_width() // 2,
                                 win_height // 2 - start_img.get_height() // 2))
 
-        # inpiten
+        # inputen
         user_input = pygame.key.get_pressed()
         if user_input[pygame.K_SPACE]:
             play_game()
