@@ -50,7 +50,6 @@ font = pygame.font.SysFont(font_name, font_size)
 top_scores = [0, 0, 0]
 is_game_over = True
 
-
 # klass för fågeln
 class FlappyBird(pygame.sprite.Sprite):
     def __init__(self):
